@@ -1,0 +1,82 @@
+From fbc63e5f343120f8a1edd9692ba46b9242c44d74 Mon Sep 17 00:00:00 2001
+From: Pointer Offset <admin@pointeroffset.dev>
+Date: Fri, 3 Jan 2025 22:51:45 -0800
+Subject: [PATCH] Hacky FlipVR Support
+
+---
+ src/xrt/auxiliary/vive/vive_poses.c   |  3 +++
+ src/xrt/drivers/steamvr_lh/device.cpp | 30 +++++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
+
+diff --git a/src/xrt/auxiliary/vive/vive_poses.c b/src/xrt/auxiliary/vive/vive_poses.c
+index f387a721f..6e94cc56f 100644
+--- a/src/xrt/auxiliary/vive/vive_poses.c
++++ b/src/xrt/auxiliary/vive/vive_poses.c
+@@ -30,6 +30,7 @@ vive_poses_get_index_offset_euler(const enum xrt_input_name input_name,
+                                   struct xrt_vec3 *out_transform_rotation)
+ {
+ 	switch (input_name) {
++	case XRT_INPUT_TOUCH_GRIP_POSE:
+ 	case XRT_INPUT_INDEX_GRIP_POSE:
+ 		out_transform_position->x = 0.f;
+ 		out_transform_position->y = -0.015f;
+@@ -40,6 +41,7 @@ vive_poses_get_index_offset_euler(const enum xrt_input_name input_name,
+ 		out_transform_rotation->z = DEG_TO_RAD(0.303);
+ 
+ 		break;
++	case XRT_INPUT_TOUCH_AIM_POSE:
+ 	case XRT_INPUT_INDEX_AIM_POSE:
+ 		out_transform_position->x = 0.006f;
+ 		out_transform_position->y = -0.015f;
+@@ -163,6 +165,7 @@ vive_poses_get_pose_offset(enum xrt_device_name device_name,
+ {
+ 
+ 	switch (device_name) {
++	case XRT_DEVICE_TOUCH_CONTROLLER:
+ 	case XRT_DEVICE_INDEX_CONTROLLER:
+ 		vive_poses_get_index_offset_pose(input_name, device_type, out_offset_pose);
+ 		break;
+diff --git a/src/xrt/drivers/steamvr_lh/device.cpp b/src/xrt/drivers/steamvr_lh/device.cpp
+index cfea43b1f..b92e193b2 100644
+--- a/src/xrt/drivers/steamvr_lh/device.cpp
++++ b/src/xrt/drivers/steamvr_lh/device.cpp
+@@ -144,6 +144,36 @@ const std::unordered_map<std::string_view, InputClass> controller_classes{
+             },
+         },
+     },
++	{
++        "flipvr_controller_vc1b",
++        InputClass{
++            XRT_DEVICE_TOUCH_CONTROLLER,
++            {
++                XRT_INPUT_TOUCH_GRIP_POSE,
++                XRT_INPUT_TOUCH_AIM_POSE,
++            },
++            {
++                {"/input/joystick", XRT_INPUT_TOUCH_THUMBSTICK},
++                {"/input/joystick/click", XRT_INPUT_TOUCH_THUMBSTICK_CLICK},
++                {"/input/joystick/touch", XRT_INPUT_TOUCH_THUMBSTICK_TOUCH},
++                {"/input/a/click", XRT_INPUT_TOUCH_A_CLICK},
++                {"/input/a/touch", XRT_INPUT_TOUCH_A_TOUCH},
++                {"/input/b/click", XRT_INPUT_TOUCH_B_CLICK},
++                {"/input/b/touch", XRT_INPUT_TOUCH_B_TOUCH},
++                {"/input/x/click", XRT_INPUT_TOUCH_X_CLICK},
++                {"/input/x/touch", XRT_INPUT_TOUCH_X_TOUCH},
++                {"/input/y/click", XRT_INPUT_TOUCH_Y_CLICK},
++                {"/input/y/touch", XRT_INPUT_TOUCH_Y_TOUCH},
++                {"/input/trigger/touch", XRT_INPUT_TOUCH_TRIGGER_TOUCH},
++                {"/input/trigger/value", XRT_INPUT_TOUCH_TRIGGER_VALUE},
++                {"/input/grip/value", XRT_INPUT_TOUCH_SQUEEZE_VALUE},
++                {"/input/system/click", XRT_INPUT_TOUCH_SYSTEM_CLICK}
++            },
++            {
++                // No fingers on this controller type
++            },
++        },
++    },
+ };
+ 
+ int64_t
+-- 
+2.47.1
+
